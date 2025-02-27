@@ -154,6 +154,12 @@ def main(args):
     # Setup optimizer (we used default Adam betas=(0.9, 0.999) and a constant learning rate of 1e-4 in our paper):
     opt = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0)
 
+    if args.ckpt_resume:
+        checkpoint = torch.load(args.ckpt_resume, weights_only=False)
+        model.module.load_state_dict(checkpoint["model"])
+        ema.load_state_dict(checkpoint["ema"])
+        opt.load_state_dict(checkpoint["opt"])
+
     # Setup data:
     transform = transforms.Compose([
         transforms.Lambda(lambda pil_image: center_crop_arr(pil_image, args.image_size)),
@@ -265,5 +271,6 @@ if __name__ == "__main__":
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--log-every", type=int, default=100)
     parser.add_argument("--ckpt-every", type=int, default=50_000)
+    parser.add_argument("--ckpt-resume", type=str, default="")
     args = parser.parse_args()
     main(args)
